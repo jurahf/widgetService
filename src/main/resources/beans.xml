@@ -1,0 +1,16 @@
+<beans
+        xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+    <bean id="WLogic" class="com.testTask.widgetLogic.WLogic">
+        <property name="storage">
+            <ref bean="h2Base" />
+        </property>
+    </bean>
+
+    <bean id="h2Base" class="com.testTask.storage.H2Storage" />
+    <bean id="customBase" class="com.testTask.storage.InMemoryStorage" />
+
+</beans>

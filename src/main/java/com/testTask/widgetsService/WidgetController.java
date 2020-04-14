@@ -1,11 +1,10 @@
 package com.testTask.widgetsService;
 
 import com.testTask.domain.Widget;
-import com.testTask.storage.InMemoryStorage;
 import com.testTask.widgetLogic.WLogic;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @RestController
@@ -19,7 +18,9 @@ public class WidgetController {
         public Integer height;
     }
 
-    private final WLogic logic = new WLogic(new InMemoryStorage<Widget>()); // TODO: DI
+    @Autowired
+    private WLogic logic = new WLogic();
+
 
     @PutMapping("/widget")
     public int CreateNew(@RequestBody WidgetDTO dto) {

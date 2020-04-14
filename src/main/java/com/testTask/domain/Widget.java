@@ -1,7 +1,6 @@
 package com.testTask.domain;
 
 import com.testTask.storage.BaseEntity;
-import com.testTask.storage.IEntity;
 
 import java.time.LocalDateTime;
 
@@ -16,7 +15,10 @@ public class Widget
     private int height;
     private int width;
 
-    private LocalDateTime lastModificationDateTime;     // все-таки не только дата, но и время
+    private LocalDateTime lastModificationDateTime;
+
+    public Widget() {
+    }
 
     public Widget(int x, int y, int z, int width, int height) {
         this.x = x;
@@ -29,7 +31,6 @@ public class Widget
 
 
     public void setX(int x) {
-        lastModificationDateTime = LocalDateTime.now();
         this.x = x;
     }
     public int getX() {
@@ -37,7 +38,6 @@ public class Widget
     }
 
     public void setY(int y) {
-        lastModificationDateTime = LocalDateTime.now();
         this.y = y;
     }
     public int getY() {
@@ -45,7 +45,6 @@ public class Widget
     }
 
     public void setZ_index(int z) {
-        lastModificationDateTime = LocalDateTime.now();
         this.z_index = z;
     }
     public int getZ_index(){
@@ -53,7 +52,6 @@ public class Widget
     }
 
     public void setHeight(int h) {
-        lastModificationDateTime = LocalDateTime.now();
         this.height = h;
     }
     public int getHeight(){
@@ -61,7 +59,6 @@ public class Widget
     }
 
     public void setWidth(int w) {
-        lastModificationDateTime = LocalDateTime.now();
         this.width = w;
     }
     public int getWidth() {
@@ -70,6 +67,10 @@ public class Widget
 
     public LocalDateTime getLastModificationDateTime() {
         return lastModificationDateTime;
+    }
+
+    public void setLastModificationDateTime(LocalDateTime dateTime) {
+        this.lastModificationDateTime = dateTime;
     }
 
     /**

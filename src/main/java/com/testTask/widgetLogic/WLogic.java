@@ -2,19 +2,23 @@ package com.testTask.widgetLogic;
 
 import com.testTask.domain.Widget;
 import com.testTask.storage.IStorage;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class WLogic {
-    private final IStorage<Widget> storage;
+    @Autowired
+    private IStorage<Widget> storage;
     private static Object syncObject = new Object();
 
-    public WLogic(IStorage<Widget> storage) {
-        this.storage = storage;
+    public void setStorage(IStorage<Widget> s) {
+        this.storage = s;
     }
+
 
 
     private int pushZIndexAndShiftAll(Integer z_index, Integer id) {
@@ -50,6 +54,7 @@ public class WLogic {
 
             for (Widget item : uppers) {
                 item.setZ_index(item.getZ_index() + 1); // TODO: переполнение?
+                item.setLastModificationDateTime(LocalDateTime.now());
                 storage.save(item);
             }
         }
@@ -94,6 +99,7 @@ public class WLogic {
                 if (height != null)
                     w.setHeight(height);
 
+                w.setLastModificationDateTime(LocalDateTime.now());
                 return storage.save(w);
             }
         }

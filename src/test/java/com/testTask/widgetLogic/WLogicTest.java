@@ -16,7 +16,7 @@ class WLogicTest {
 
     @BeforeAll
     public static void Init() {
-        logic = new WLogic(new InMemoryStorage<Widget>());
+        logic = new WLogic(/*new InMemoryStorage<Widget>()*/);
     }
 
     @Test
