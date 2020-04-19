@@ -33,8 +33,9 @@ public class WidgetController {
     }
 
     @GetMapping("/widget")
-    public List<Widget> getAll() {
-        return logic.getAll();
+    public List<Widget> getAll(@RequestParam(name = "limit", defaultValue = "10") int limit,
+                               @RequestParam(name = "page", defaultValue = "1") int page) {
+        return logic.getPage(limit, page);
     }
 
     @PostMapping("widget/{id}")

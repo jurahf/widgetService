@@ -109,4 +109,26 @@ class WLogicCustomStorageTest {
         assertThrows(StackOverflowError.class, () -> logic.createWidget(1, 1, null, 100, 100));
     }
 
+    @Test
+    public void pagination() {
+        WLogic logic = createLogic();
+
+        int id1 = logic.createWidget(1, 1, 1, 1, 1);
+        int id2 = logic.createWidget(2, 2, 2, 2, 2);
+        int id3 = logic.createWidget(3, 3, 3, 3, 3);
+
+        var list1 = logic.getPage(2, 1);
+        var list2 = logic.getPage(2, 2);
+        var list3 = logic.getPage(2, 3);
+
+        assertEquals(2, list1.size());
+        assertEquals(id1, list1.get(0).getId());
+        assertEquals(id2, list1.get(1).getId());
+
+        assertEquals(1, list2.size());
+        assertEquals(id3, list2.get(0).getId());
+
+        assertEquals(0, list3.size());
+    }
+
 }

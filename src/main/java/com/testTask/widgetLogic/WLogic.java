@@ -133,6 +133,15 @@ public class WLogic {
         }
     }
 
+    public List<Widget> getPage(int limit, int page)
+        throws IllegalArgumentException {
+        if (page <= 0 || limit <= 0)
+            throw new IllegalArgumentException("Limit and Page must be positive.");
+
+        List<Widget> all = getAll();    // то есть мы читаем и материализуем все равно все
+        return all.subList(Math.min((page - 1) * limit, all.size()), Math.min(page * limit, all.size()));
+    }
+
     public boolean delete(int id) {
         synchronized (syncObject) {
             return storage.delete(id);
