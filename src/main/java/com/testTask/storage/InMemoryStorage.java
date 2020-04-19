@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class InMemoryStorage<T extends BaseEntity>
+public class InMemoryStorage<T extends BaseEntity>  // так-то H2 тоже in-memory
     implements  IStorage<T> {
 
     private final AtomicInteger idGenerator = new AtomicInteger();

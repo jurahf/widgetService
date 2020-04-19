@@ -20,12 +20,9 @@ public class WLogic {
     }
 
 
-
-    private int pushZIndexAndShiftAll(Integer z_index, Integer id) {
+    private int getWishIndex(Integer z_index, Integer id, List<Widget> allWidgets) {
         int wishIndex;
-        List<Widget> allWidgets = storage.getAll();
 
-        // если индекс не указан - помещаем вперед, то есть ищем максимальный из существующих
         if (z_index == null) {
             Optional<Integer> maxOpt = allWidgets.stream()
                     .map(x -> x.getZ_index())
@@ -33,16 +30,30 @@ public class WLogic {
 
             if (maxOpt.isEmpty())
                 wishIndex = 0;
-            else
-                wishIndex = maxOpt.get() + 1; // TODO: переполнение?
+            else {
+                int maxLevel = maxOpt.get();
+                if (maxLevel >= Integer.MAX_VALUE)
+                    throw new StackOverflowError("Upper levels are already taken");
+                wishIndex = maxLevel + 1;
+            }
         }
         else {
             wishIndex = z_index;
         }
 
+        return wishIndex;
+    }
+
+
+    private int pushZIndexAndShiftAll(Integer z_index, Integer id)
+        throws StackOverflowError {
+
+        List<Widget> allWidgets = storage.getAll();
+        int wishIndex = getWishIndex(z_index, id, allWidgets);
+
         // проверим, нет ли на желаемом индексе других виджетов
         Optional<Widget> onSamePlace = allWidgets.stream()
-                .filter(x -> x.getZ_index() == wishIndex && x.getId() != id)
+                .filter(x -> x.getZ_index() == wishIndex && (Integer)x.getId() != id)
                 .findFirst();
 
         if (!onSamePlace.isEmpty()) {
@@ -53,7 +64,10 @@ public class WLogic {
                     .collect(Collectors.toList());
 
             for (Widget item : uppers) {
-                item.setZ_index(item.getZ_index() + 1); // TODO: переполнение?
+                int maxLevel = item.getZ_index();
+                if (maxLevel >= Integer.MAX_VALUE)
+                    throw new StackOverflowError("Upper levels are already taken");
+                item.setZ_index(maxLevel + 1);
                 item.setLastModificationDateTime(LocalDateTime.now());
                 storage.save(item);
             }

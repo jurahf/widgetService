@@ -13,7 +13,7 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.List;
 
-public class H2Storage
+public class H2WidgetStorage // сделать бы его тоже Generic...
     implements IStorage<Widget> {
 
     @Autowired

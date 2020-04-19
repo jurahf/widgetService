@@ -6,11 +6,11 @@ http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 
     <bean id="WLogic" class="com.testTask.widgetLogic.WLogic">
         <property name="storage">
-            <ref bean="h2Base" />
+            <ref bean="customBase" />
         </property>
     </bean>
 
-    <bean id="h2Base" class="com.testTask.storage.H2Storage" />
+    <bean id="h2Base" class="com.testTask.storage.H2WidgetStorage" />
     <bean id="customBase" class="com.testTask.storage.InMemoryStorage" />
 
 </beans>
