@@ -1,6 +1,5 @@
 package com.testTask.storage;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -40,7 +39,7 @@ public class InMemoryStorage<T extends BaseEntity>  // так-то H2 тоже i
     }
 
     public List<T> getAll() {
-        return new ArrayList<>(map.values().stream().map(x -> (T)x.copy()).collect(Collectors.toList()));
+        return map.values().stream().map(x -> (T)x.copy()).collect(Collectors.toList());
     }
 
     public boolean delete(int id) {

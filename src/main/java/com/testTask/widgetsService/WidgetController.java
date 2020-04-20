@@ -38,7 +38,7 @@ public class WidgetController {
         return logic.getPage(limit, page);
     }
 
-    @PostMapping("widget/{id}")
+    @PostMapping("/widget/{id}")
     public int Update(@PathVariable int id, @RequestBody WidgetDTO dto) {
         return logic.updateWidget(id, dto.x, dto.y, dto.z_index, dto.width, dto.height);
     }
