@@ -76,7 +76,7 @@ public class WLogic {
         return wishIndex;
     }
 
-    public int createWidget(Integer x, Integer y, Integer z_index, Integer width, Integer height)
+    public Widget createWidget(Integer x, Integer y, Integer z_index, Integer width, Integer height)
         throws IllegalArgumentException {
         if (x == null || y == null
             || width == null || height == null) {
@@ -86,12 +86,12 @@ public class WLogic {
         synchronized (syncObject) {
             int z = pushZIndexAndShiftAll(z_index, null); // это должно быть внутри синхронизации, чтобы все виджеты переместились одновременно
             Widget widget = new Widget(x, y, z, width, height);
-
-            return storage.save(widget);
+            storage.save(widget);
+            return widget;
         }
     }
 
-    public int updateWidget(int id, Integer x, Integer y, Integer z_index, Integer width, Integer height)
+    public Widget updateWidget(int id, Integer x, Integer y, Integer z_index, Integer width, Integer height)
         throws IllegalArgumentException {
         synchronized (syncObject) {
             Widget w = storage.get(id);
@@ -114,7 +114,8 @@ public class WLogic {
                     w.setHeight(height);
 
                 w.setLastModificationDateTime(LocalDateTime.now());
-                return storage.save(w);
+                storage.save(w);
+                return w;
             }
         }
     }

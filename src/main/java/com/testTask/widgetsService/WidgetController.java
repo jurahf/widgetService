@@ -23,7 +23,7 @@ public class WidgetController {
 
 
     @PutMapping("/widget")
-    public int CreateNew(@RequestBody WidgetDTO dto) {
+    public Widget CreateNew(@RequestBody WidgetDTO dto) {
         return logic.createWidget(dto.x, dto.y, dto.z_index, dto.width, dto.height);
     }
 
@@ -39,7 +39,7 @@ public class WidgetController {
     }
 
     @PostMapping("/widget/{id}")
-    public int Update(@PathVariable int id, @RequestBody WidgetDTO dto) {
+    public Widget Update(@PathVariable int id, @RequestBody WidgetDTO dto) {
         return logic.updateWidget(id, dto.x, dto.y, dto.z_index, dto.width, dto.height);
     }
 

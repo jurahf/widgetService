@@ -22,8 +22,8 @@ class WLogicCustomStorageTest {
         Widget w = logic.getWidget(1);
         assertEquals(null, w);
 
-        int id = logic.createWidget(1, 1, 0, 100, 100);
-        w = logic.getWidget(id);
+        w = logic.createWidget(1, 1, 0, 100, 100);
+
         assertEquals(1, w.getX());
         assertEquals(1, w.getY());
         assertEquals(0, w.getZ_index());
@@ -50,7 +50,7 @@ class WLogicCustomStorageTest {
         boolean res = logic.delete(1);
         assertEquals(false, res);
 
-        int id = logic.createWidget(1, 1, 0, 100, 100);
+        int id = logic.createWidget(1, 1, 0, 100, 100).getId();
         res = logic.delete(id);
         assertEquals(true, res);
     }
@@ -61,7 +61,7 @@ class WLogicCustomStorageTest {
         assertThrows(IllegalArgumentException.class, () ->
                 logic.updateWidget(1, 10, null, null, null, null));
 
-        int id = logic.createWidget(1, 1, 0, 100, 100);
+        int id = logic.createWidget(1, 1, 0, 100, 100).getId();
         logic.updateWidget(id, 10, null, null, null, null);
         Widget w = logic.getWidget(id);
         assertEquals(10, w.getX());
@@ -75,9 +75,9 @@ class WLogicCustomStorageTest {
     public void shiftZIndex(){
         WLogic logic = createLogic();
 
-        int id1 = logic.createWidget(1, 1, 1, 1, 1);
-        int id2 = logic.createWidget(2, 2, 2, 2, 2);
-        int id3 = logic.createWidget(3, 3, 3, 3, 3);
+        int id1 = logic.createWidget(1, 1, 1, 1, 1).getId();
+        int id2 = logic.createWidget(2, 2, 2, 2, 2).getId();
+        int id3 = logic.createWidget(3, 3, 3, 3, 3).getId();
 
         logic.updateWidget(id3, null, null, 1, null, null);
 
@@ -98,14 +98,14 @@ class WLogicCustomStorageTest {
     @Test
     public void overflowZIndexShift() {
         WLogic logic = createLogic();
-        int id1 = logic.createWidget(0, 0, Integer.MAX_VALUE, 100, 100);
+        logic.createWidget(0, 0, Integer.MAX_VALUE, 100, 100);
         assertThrows(StackOverflowError.class, () -> logic.createWidget(1, 1, Integer.MAX_VALUE, 100, 100));
     }
 
     @Test
     public void overflowZIndexFirstInsert() {
         WLogic logic = createLogic();
-        int id1 = logic.createWidget(0, 0, Integer.MAX_VALUE, 100, 100);
+        logic.createWidget(0, 0, Integer.MAX_VALUE, 100, 100);
         assertThrows(StackOverflowError.class, () -> logic.createWidget(1, 1, null, 100, 100));
     }
 
@@ -113,9 +113,9 @@ class WLogicCustomStorageTest {
     public void pagination() {
         WLogic logic = createLogic();
 
-        int id1 = logic.createWidget(1, 1, 1, 1, 1);
-        int id2 = logic.createWidget(2, 2, 2, 2, 2);
-        int id3 = logic.createWidget(3, 3, 3, 3, 3);
+        int id1 = logic.createWidget(1, 1, 1, 1, 1).getId();
+        int id2 = logic.createWidget(2, 2, 2, 2, 2).getId();
+        int id3 = logic.createWidget(3, 3, 3, 3, 3).getId();
 
         var list1 = logic.getPage(2, 1);
         var list2 = logic.getPage(2, 2);
