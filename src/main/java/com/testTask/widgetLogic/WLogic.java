@@ -139,6 +139,9 @@ public class WLogic {
         if (page <= 0 || limit <= 0)
             throw new IllegalArgumentException("Limit and Page must be positive.");
 
+        if (limit > 500)
+            throw new IllegalArgumentException("Limit can't be more than 500.");
+
         List<Widget> all = getAll();    // то есть мы читаем и материализуем все равно все
         return all.subList(Math.min((page - 1) * limit, all.size()), Math.min(page * limit, all.size()));
     }
