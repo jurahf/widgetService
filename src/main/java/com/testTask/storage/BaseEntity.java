@@ -14,7 +14,6 @@ public abstract class BaseEntity
         this.id = id;
     }
 
-    @JsonIgnore
     public boolean isSaved() {
         return id > 0;
     }
