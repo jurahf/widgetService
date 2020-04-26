@@ -8,7 +8,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class WLogicCustomStorageTest {
+class WLogicTest {
 
     private WLogic createLogic(){
         WLogic logic = new WLogic();

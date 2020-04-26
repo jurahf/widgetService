@@ -19,6 +19,10 @@ public class H2WidgetStorage // сделать бы его тоже Generic...
     @Autowired
     JdbcTemplate jtm;
 
+    public void setJdbcTemplate(JdbcTemplate jdbcTemplate){
+        this.jtm = jdbcTemplate;
+    }
+
     @Override
     public int save(Widget ent)
         throws IllegalArgumentException {
@@ -44,8 +48,10 @@ public class H2WidgetStorage // сделать бы его тоже Generic...
                 Arrays.asList(ent.getX(), ent.getY(), ent.getZ_index(), ent.getWidth(), ent.getHeight(), ent.getLastModificationDateTime()));
 
         jtm.update(psc, keyHolder);
+        int id = (int)keyHolder.getKey();
+        ent.setId(id);
 
-        return (int)keyHolder.getKey();
+        return id;
     }
 
     private int update(Widget ent) {
