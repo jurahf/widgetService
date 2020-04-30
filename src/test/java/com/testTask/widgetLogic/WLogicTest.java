@@ -47,11 +47,10 @@ class WLogicTest {
     @Test
     public void deleteTest() {
         WLogic logic = createLogic();
-        boolean res = logic.delete(1);
-        assertEquals(false, res);
+        assertThrows(IllegalArgumentException.class, () -> logic.delete(1));
 
         int id = logic.createWidget(1, 1, 0, 100, 100).getId();
-        res = logic.delete(id);
+        boolean res = logic.delete(id);
         assertEquals(true, res);
     }
 
