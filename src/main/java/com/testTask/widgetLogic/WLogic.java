@@ -107,7 +107,7 @@ public class WLogic {
             Widget w = storage.get(id);
 
             if (w == null) {
-                throw new IllegalArgumentException("Widget for updating not found.");
+                throw new IllegalArgumentException("Widget for updating is not found.");
             } else {
                 if (x != null)
                     w.setX(x);
@@ -153,9 +153,13 @@ public class WLogic {
         return all.subList(Math.min((page - 1) * limit, all.size()), Math.min(page * limit, all.size()));
     }
 
-    public boolean delete(int id) {
+    public boolean delete(int id)
+        throws IllegalArgumentException {
         synchronized (syncObject) {
-            return storage.delete(id);
+            if (storage.delete(id))
+                return true;
+            else
+                throw new IllegalArgumentException("Widget for delete is not found.");
         }
     }
 

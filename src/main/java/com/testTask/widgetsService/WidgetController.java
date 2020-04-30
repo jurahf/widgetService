@@ -3,7 +3,10 @@ package com.testTask.widgetsService;
 import com.testTask.domain.Widget;
 import com.testTask.widgetLogic.WLogic;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -62,13 +65,26 @@ public class WidgetController {
     }
 
     @PostMapping("/widget/{id}")
-    public WidgetDTOOutput Update(@PathVariable int id, @RequestBody WidgetDTOInput dto) {
-        return new WidgetDTOOutput(logic.updateWidget(id, dto.x, dto.y, dto.z_index, dto.width, dto.height));
+    public ResponseEntity<WidgetDTOOutput> Update(@PathVariable int id, @RequestBody WidgetDTOInput dto) {
+        try {
+            return new ResponseEntity<>(
+                    new WidgetDTOOutput(logic.updateWidget(id, dto.x, dto.y, dto.z_index, dto.width, dto.height)),
+                    HttpStatus.OK);
+        }
+        catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
     }
 
     @DeleteMapping("/widget/{id}")
-    public boolean delete(@PathVariable int id) {
-        return logic.delete(id);
+    public ResponseEntity delete(@PathVariable int id) {
+        try {
+            logic.delete(id);
+            return new ResponseEntity(HttpStatus.OK);
+        }
+        catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
     }
 }
 
