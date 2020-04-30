@@ -2,19 +2,26 @@ package com.testTask.storage;
 
 import com.testTask.domain.Widget;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCreator;
-import org.springframework.jdbc.core.PreparedStatementCreatorFactory;
+import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.transaction.NotSupportedException;
+import javax.transaction.Transaction;
+import java.sql.Connection;
+import java.sql.SQLDataException;
+import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class H2WidgetStorage // сделать бы его тоже Generic...
     implements IStorage<Widget> {
+
+    private List<PreparedStatementCreator> preparedQueries = new ArrayList<>();
 
     @Autowired
     JdbcTemplate jtm;
@@ -23,9 +30,61 @@ public class H2WidgetStorage // сделать бы его тоже Generic...
         this.jtm = jdbcTemplate;
     }
 
+    private final AtomicInteger idGenerator = new AtomicInteger();
+    private void setEntityId(Widget entity) {
+        int id = idGenerator.incrementAndGet();
+        entity.setId(id);
+    }
+
+    private PreparedStatementCreator CreateInsertStatement(Widget ent) {
+        String sql = "INSERT INTO Widget (id, x, y, z_index, width, height, lastModificationDateTime) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        PreparedStatementCreatorFactory pscf =
+                new PreparedStatementCreatorFactory(sql, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.TIMESTAMP);
+        pscf.setReturnGeneratedKeys(true);
+        PreparedStatementCreator psc = pscf.newPreparedStatementCreator(
+                Arrays.asList(ent.getId(), ent.getX(), ent.getY(), ent.getZ_index(), ent.getWidth(), ent.getHeight(), ent.getLastModificationDateTime()));
+
+        return psc;
+    }
+
+    private PreparedStatementCreator CreateUpdateStatement(Widget ent) {
+        String sql = "UPDATE Widget SET x = ?, y = ?, z_index = ?, width = ?, height = ?, lastModificationDateTime = ? WHERE id = ?";
+
+        PreparedStatementCreatorFactory pscf =
+                new PreparedStatementCreatorFactory(sql, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.TIMESTAMP, Types.INTEGER);
+        pscf.setReturnGeneratedKeys(true);
+        PreparedStatementCreator psc = pscf.newPreparedStatementCreator(
+                Arrays.asList(ent.getX(), ent.getY(), ent.getZ_index(), ent.getWidth(), ent.getHeight(), ent.getLastModificationDateTime(), ent.getId()));
+
+        return psc;
+    }
+
+    private PreparedStatementCreator CreateDeleteStatement(int id) {
+        String sql = "DELETE FROM Widget WHERE id = ?";
+
+        PreparedStatementCreatorFactory pscf =
+                new PreparedStatementCreatorFactory(sql, Types.INTEGER);
+        PreparedStatementCreator psc = pscf.newPreparedStatementCreator(Arrays.asList(id));
+
+        return psc;
+    }
+
+    private int insert(Widget ent) {
+        setEntityId(ent);
+        PreparedStatementCreator psc = CreateInsertStatement(ent);
+        jtm.update(psc);
+        return ent.getId();
+    }
+
+    private int update(Widget ent) {
+        PreparedStatementCreator psc = CreateUpdateStatement(ent);
+        jtm.update(psc);
+        return ent.getId();
+    }
+
     @Override
     public int save(Widget ent)
-        throws IllegalArgumentException {
+            throws IllegalArgumentException {
         if (ent == null)
             throw new IllegalArgumentException("Entity for saving can't be empty.");
 
@@ -35,28 +94,6 @@ public class H2WidgetStorage // сделать бы его тоже Generic...
         else {
             return insert(ent);
         }
-    }
-
-    private int insert(Widget ent) {
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        String sql = "INSERT INTO Widget (x, y, z_index, width, height, lastModificationDateTime) VALUES (?, ?, ?, ?, ?, ?)";
-        PreparedStatementCreatorFactory pscf =
-                new PreparedStatementCreatorFactory(sql, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.TIMESTAMP);
-        pscf.setReturnGeneratedKeys(true);
-        PreparedStatementCreator psc = pscf.newPreparedStatementCreator(
-                Arrays.asList(ent.getX(), ent.getY(), ent.getZ_index(), ent.getWidth(), ent.getHeight(), ent.getLastModificationDateTime()));
-
-        jtm.update(psc, keyHolder);
-        int id = (int)keyHolder.getKey();
-        ent.setId(id);
-
-        return id;
-    }
-
-    private int update(Widget ent) {
-        String sql = "UPDATE Widget SET x = ?, y = ?, z_index = ?, width = ?, height = ?, lastModificationDateTime = ? WHERE id = ?";
-        return jtm.update(sql, ent.getX(), ent.getY(), ent.getZ_index(), ent.getWidth(), ent.getHeight(), ent.getLastModificationDateTime(), ent.getId());
     }
 
     @Override
@@ -76,9 +113,42 @@ public class H2WidgetStorage // сделать бы его тоже Generic...
 
     @Override
     public boolean delete(int id) {
-        String sql = "DELETE FROM Widget WHERE id = ?";
-        int rowsAffected = jtm.update(sql, id);
+        PreparedStatementCreator psc = CreateDeleteStatement(id);
+        int rowsAffected = jtm.update(psc);
 
-        return rowsAffected == 1;
+        return rowsAffected > 0;
     }
+
+    @Override
+    public void addChanges(Widget w, ChangeKind change) {
+        PreparedStatementCreator psc = null;
+
+        if (change == ChangeKind.SAVE) {
+            if (w.isSaved()) {
+                psc = CreateUpdateStatement(w);
+            }
+            else {
+                setEntityId(w);
+                psc = CreateInsertStatement(w);
+            }
+        }
+        else {
+            psc = CreateDeleteStatement(1);
+        }
+
+        preparedQueries.add(psc);
+    }
+
+    @Override
+    @Transactional
+    public void commitAllChanges() {
+        for (var psc : preparedQueries) {
+            // batch, похоже, умеет только с одним и тем же sql и разными параметрами. А разные sql не умеет.
+            // поэтому используем @Transactional
+            jtm.update(psc);
+        }
+
+        preparedQueries = new ArrayList<>();
+    }
+
 }

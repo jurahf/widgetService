@@ -1,6 +1,7 @@
 package com.testTask.widgetLogic;
 
 import com.testTask.domain.Widget;
+import com.testTask.storage.ChangeKind;
 import com.testTask.storage.IStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -45,6 +46,14 @@ public class WLogic {
     }
 
 
+    /**
+     * Передвигает виджеты, чтобы можно было вставить новый на место z_index.
+     * Добавляет изменения виджетов в транзакцию хранилища.
+     * @param z_index
+     * @param id
+     * @return
+     * @throws StackOverflowError
+     */
     private int pushZIndexAndShiftAll(Integer z_index, Integer id)
         throws StackOverflowError {
 
@@ -69,7 +78,7 @@ public class WLogic {
                     throw new StackOverflowError("Upper levels are already taken");
                 item.setZ_index(maxLevel + 1);
                 item.setLastModificationDateTime(LocalDateTime.now());
-                storage.save(item);
+                storage.addChanges(item, ChangeKind.SAVE);
             }
         }
 
@@ -84,9 +93,10 @@ public class WLogic {
         }
 
         synchronized (syncObject) {
-            int z = pushZIndexAndShiftAll(z_index, null); // это должно быть внутри синхронизации, чтобы все виджеты переместились одновременно
+            int z = pushZIndexAndShiftAll(z_index, null); // тоже добавляет изменения в транзакцию
             Widget widget = new Widget(x, y, z, width, height);
-            storage.save(widget);
+            storage.addChanges(widget, ChangeKind.SAVE);
+            storage.commitAllChanges();
             return widget;
         }
     }
@@ -104,7 +114,7 @@ public class WLogic {
                 if (y != null)
                     w.setY(y);
                 if (z_index != null) {
-                    int z = pushZIndexAndShiftAll(z_index, id); // это должно быть внутри синхронизации, чтобы все виджеты переместились одновременно
+                    int z = pushZIndexAndShiftAll(z_index, id); // тоже добавляет изменения в транзакцию
                     w.setZ_index(z);
                 }
 
@@ -114,24 +124,21 @@ public class WLogic {
                     w.setHeight(height);
 
                 w.setLastModificationDateTime(LocalDateTime.now());
-                storage.save(w);
+                storage.addChanges(w, ChangeKind.SAVE);
+                storage.commitAllChanges();
                 return w;
             }
         }
     }
 
     public Widget getWidget(int id) {
-        synchronized (syncObject) {
-            return storage.get(id);
-        }
+        return storage.get(id);
     }
 
     public List<Widget> getAll() {
-        synchronized (syncObject) {
-            return storage.getAll().stream()
-                    .sorted(Comparator.comparingInt(Widget::getZ_index))
-                    .collect(Collectors.toList());
-        }
+        return storage.getAll().stream()
+                .sorted(Comparator.comparingInt(Widget::getZ_index))
+                .collect(Collectors.toList());
     }
 
     public List<Widget> getPage(int limit, int page)

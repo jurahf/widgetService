@@ -1,5 +1,6 @@
 package com.testTask.storage;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -10,6 +11,12 @@ public class InMemoryStorage<T extends BaseEntity>  // так-то H2 тоже i
 
     private final AtomicInteger idGenerator = new AtomicInteger();
     private HashMap<Integer, T> map = new HashMap<>();
+    private HashMap<Integer, T> addedSaveChanges = new HashMap<>();
+    private List<Integer> addedDeleteChanges = new ArrayList<>();
+
+    private int generateNewId() {
+        return idGenerator.incrementAndGet();
+    }
 
     public int save(T ent)
         throws IllegalArgumentException {
@@ -22,7 +29,7 @@ public class InMemoryStorage<T extends BaseEntity>  // так-то H2 тоже i
         }
         else {
             // create
-            ent.setId(idGenerator.incrementAndGet());
+            ent.setId(generateNewId());
             map.put(ent.getId(), ent);
         }
 
@@ -45,6 +52,45 @@ public class InMemoryStorage<T extends BaseEntity>  // так-то H2 тоже i
     public boolean delete(int id) {
         T old = map.remove(id);
         return old != null;
+    }
+
+    public void addChanges(T entity, ChangeKind change) {
+        if (change == ChangeKind.SAVE) {
+            if (!entity.isSaved())
+                entity.setId(generateNewId());
+
+            if (addedSaveChanges.containsKey(entity.getId()))
+                addedSaveChanges.replace(entity.getId(), entity);
+            else
+                addedSaveChanges.put(entity.getId(), entity);
+        }
+        else {
+            if (entity.isSaved() && !addedDeleteChanges.contains(entity.getId()))
+                addedDeleteChanges.add(entity.getId());
+        }
+    }
+
+    public void commitAllChanges(){
+        HashMap<Integer, T> copyMap = new HashMap<>(map.values().stream()
+                        .map(x -> (T)x.copy())
+                        .collect(Collectors.toMap(x -> x.getId(), x -> x)));
+
+        for (int i : addedSaveChanges.keySet()) {
+            if (copyMap.containsKey(i)) {
+                copyMap.replace(i, addedSaveChanges.get(i));
+            }
+            else {
+                copyMap.put(i, addedSaveChanges.get(i));
+            }
+        }
+
+        for (int i : addedDeleteChanges) {
+            copyMap.remove(i);
+        }
+
+        map = copyMap;
+        addedSaveChanges = new HashMap<>();
+        addedDeleteChanges = new ArrayList<>();
     }
 
 }

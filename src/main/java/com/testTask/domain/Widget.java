@@ -78,6 +78,7 @@ public class Widget
     @Override
     public Widget copy() {
         Widget result = new Widget(x, y, z_index, width, height);
+        result.setLastModificationDateTime(this.lastModificationDateTime);
         result.setId(this.getId());
         return result;
     }
